@@ -58,15 +58,8 @@ class CMOSRTC : public RTC
                 true);
       }
 
-      /**
-	 * Interrogates the RTC to read the current date & time.
-	 * @param tp Populates the tp structure with the current data & time, as
-	 * given by the CMOS RTC device.
-	 */
-      void read_timepoint(RTCTimePoint &tp) override
+      RTCTimePoint get_tp()
       {
-            // FILL IN THIS METHOD - WRITE HELPER METHODS IF NECESSARY
-            unsigned char registerB;
             unsigned char second;
             unsigned char minute;
             unsigned char hour;
@@ -94,22 +87,28 @@ class CMOSRTC : public RTC
                 .day_of_month = day,
                 .month = month,
                 .year = year,
-                };
+            };
 
+            return tp;
+      }
+
+      /**
+	 * Interrogates the RTC to read the current date & time.
+	 * @param tp Populates the tp structure with the current data & time, as
+	 * given by the CMOS RTC device.
+	 */
+      void read_timepoint(RTCTimePoint &tp) override
+      {
+            // FILL IN THIS METHOD - WRITE HELPER METHODS IF NECESSARY
+            unsigned char registerB;
+
+            tp = get_tp();
             RTCTimePoint previous = tp;
 
             do
             {
                   previous = tp;
-
-                  while (get_update_in_progress_flag())
-                        ; // Make sure an update isn't in progress
-                  second = get_RTC_register(0x00);
-                  minute = get_RTC_register(0x02);
-                  hour = get_RTC_register(0x04);
-                  day = get_RTC_register(0x07);
-                  month = get_RTC_register(0x08);
-                  year = get_RTC_register(0x09);
+                  tp = get_tp();
             } while (!tp_eq(tp, previous));
 
             registerB = get_RTC_register(0xB);
