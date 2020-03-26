@@ -89,7 +89,7 @@ class CMOSRTC : public RTC
 
             tp = RTCTimePoint{
                 .seconds = second,
-                .minute = minute,
+                .minutes = minute,
                 .hours = hour,
                 .day_of_month = day,
                 .month = month,
@@ -110,7 +110,7 @@ class CMOSRTC : public RTC
                   day = get_RTC_register(0x07);
                   month = get_RTC_register(0x08);
                   year = get_RTC_register(0x09);
-            } while (!tp_eq(now, previous));
+            } while (!tp_eq(tp, previous));
 
             registerB = get_RTC_register(0xB);
 
