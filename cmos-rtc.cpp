@@ -82,7 +82,7 @@ class CMOSRTC : public RTC
             month = get_RTC_register(0x08);
             year = get_RTC_register(0x09);
 
-            now = RTCTimePoint{
+            tp = RTCTimePoint{
                 .seconds = second,
                 .minute = minute,
                 .hours = hour,
