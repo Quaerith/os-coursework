@@ -93,7 +93,8 @@ class CMOSRTC : public RTC
                 .hours = hour,
                 .day_of_month = day,
                 .month = month,
-                .year = year};
+                .year = year,
+                };
 
             RTCTimePoint previous = tp;
 
@@ -134,8 +135,8 @@ class CMOSRTC : public RTC
 
             // Calculate the full (4-digit) year
 
-            year += (tp->year / 100) * 100;
-            if (year < tp->year)
+            year += (tp.year / 100) * 100;
+            if (year < tp.year)
                   year += 100;
       }
 
