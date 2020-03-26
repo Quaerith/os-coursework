@@ -7,9 +7,13 @@
  * STUDENT NUMBER: s1752778
  */
 #include <infos/drivers/timer/rtc.h>
+#include <infos/util/lock.h>
+#include <arch/x86/pio.h>
 
 using namespace infos::drivers;
 using namespace infos::drivers::timer;
+using namespace infos::util;
+using namespace infos::arch::x86;
 
 class CMOSRTC : public RTC
 {
@@ -21,17 +25,9 @@ class CMOSRTC : public RTC
             return CMOSRTCDeviceClass;
       }
 
-      int century_register = 0x00; // Set by ACPI table parsing code if possible
-      int CURRENT_YEAR = 2020;
-      unsigned char second;
-      unsigned char minute;
-      unsigned char hour;
-      unsigned char day;
-      unsigned char month;
-      unsigned int year;
 
-      void out_byte(int port, int value);
-      int in_byte(int port);
+      // void out_byte(int port, int value);
+      // int in_byte(int port);
 
       enum
       {
@@ -41,14 +37,14 @@ class CMOSRTC : public RTC
 
       int get_update_in_progress_flag()
       {
-            out_byte(cmos_address, 0xA);
-            return (in_byte(cmos_data) & 0x80);
+            __outb(cmos_address, 0xA);
+            return (__inb(cmos_data) & 0x80);
       }
 
       unsigned char get_RTC_register(int reg)
       {
-            out_byte(cmos_address, reg);
-            return in_byte(cmos_data);
+            __outb(cmos_address, reg);
+            return __inb(cmos_data);
       }
 
       /**
@@ -59,41 +55,36 @@ class CMOSRTC : public RTC
       void read_timepoint(RTCTimePoint &tp) override
       {
             // FILL IN THIS METHOD - WRITE HELPER METHODS IF NECESSARY
-            unsigned char century;
-            unsigned char last_second;
-            unsigned char last_minute;
-            unsigned char last_hour;
-            unsigned char last_day;
-            unsigned char last_month;
-            unsigned char last_year;
-            unsigned char last_century;
-            unsigned char registerB;
+            UniqueIRQLock l;
+
+           
+            
 
             // Note: This uses the "read registers until you get the same values twice in a row" technique
             //       to avoid getting dodgy/inconsistent values due to RTC updates
 
-            while (get_update_in_progress_flag())
-                  ; // Make sure an update isn't in progress
+            while (get_update_in_progress_flag()); // Make sure an update isn't in progress
             second = get_RTC_register(0x00);
             minute = get_RTC_register(0x02);
             hour = get_RTC_register(0x04);
             day = get_RTC_register(0x07);
             month = get_RTC_register(0x08);
             year = get_RTC_register(0x09);
-            if (century_register != 0)
-            {
-                  century = get_RTC_register(century_register);
-            }
+
+            now = RTCTimePoint {
+                  .seconds = second,
+                  .minute = minute,
+                  .hours = hour,
+                  .day_of_month = day,
+                  .month = month,
+                  .year = year
+            };
+
+            RTCTimePoint previous = now;
 
             do
             {
-                  last_second = second;
-                  last_minute = minute;
-                  last_hour = hour;
-                  last_day = day;
-                  last_month = month;
-                  last_year = year;
-                  last_century = century;
+                  previous = now;
 
                   while (get_update_in_progress_flag())
                         ; // Make sure an update isn't in progress
@@ -103,13 +94,9 @@ class CMOSRTC : public RTC
                   day = get_RTC_register(0x07);
                   month = get_RTC_register(0x08);
                   year = get_RTC_register(0x09);
-                  if (century_register != 0)
-                  {
-                        century = get_RTC_register(century_register);
-                  }
+                 
             } while ((last_second != second) || (last_minute != minute) || (last_hour != hour) ||
-                     (last_day != day) || (last_month != month) || (last_year != year) ||
-                     (last_century != century));
+                     (last_day != day) || (last_month != month) || (last_year != year));
 
             registerB = get_RTC_register(0x0B);
 
@@ -123,10 +110,6 @@ class CMOSRTC : public RTC
                   day = (day & 0x0F) + ((day / 16) * 10);
                   month = (month & 0x0F) + ((month / 16) * 10);
                   year = (year & 0x0F) + ((year / 16) * 10);
-                  if (century_register != 0)
-                  {
-                        century = (century & 0x0F) + ((century / 16) * 10);
-                  }
             }
 
             // Convert 12 hour clock to 24 hour clock if necessary
@@ -138,16 +121,12 @@ class CMOSRTC : public RTC
 
             // Calculate the full (4-digit) year
 
-            if (century_register != 0)
-            {
-                  year += century * 100;
-            }
-            else
-            {
-                  year += (CURRENT_YEAR / 100) * 100;
-                  if (year < CURRENT_YEAR)
+      
+            
+                  year += (now -> year / 100) * 100;
+                  if (year < now -> year)
                         year += 100;
-            }
+            
       }
 
       // private:
