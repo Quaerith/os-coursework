@@ -117,26 +117,26 @@ class CMOSRTC : public RTC
 
             if (!(registerB & 0x04))
             {
-                  second = (second & 0x0F) + ((second / 16) * 10);
-                  minute = (minute & 0x0F) + ((minute / 16) * 10);
-                  hour = ((hour & 0x0F) + (((hour & 0x70) / 16) * 10)) | (hour & 0x80);
-                  day = (day & 0x0F) + ((day / 16) * 10);
-                  month = (month & 0x0F) + ((month / 16) * 10);
-                  year = (year & 0x0F) + ((year / 16) * 10);
+                  tp.seconds = (tp.seconds & 0x0F) + ((tp.seconds / 16) * 10);
+                  tp.minutes = (tp.minutes & 0x0F) + ((tp.minutes / 16) * 10);
+                  tp.hours = ((tp.hours & 0x0F) + (((tp.hours & 0x70) / 16) * 10)) | (tp.hours & 0x80);
+                  tp.day = (tp.day & 0x0F) + ((tp.day / 16) * 10);
+                  tp.month = (tp.month & 0x0F) + ((tp.month / 16) * 10);
+                  tp.year = (tp.year & 0x0F) + ((tp.year / 16) * 10);
             }
 
             // Convert 12 hour clock to 24 hour clock if necessary
 
-            if (!(registerB & 0x02) && (hour & 0x80))
+            if (!(registerB & 0x02) && (tp.hours & 0x80))
             {
-                  hour = ((hour & 0x7F) + 12) % 24;
+                  tp.hours = ((tp.hours & 0x7F) + 12) % 24;
             }
 
             // Calculate the full (4-digit) year
 
-            year += (tp.year / 100) * 100;
-            if (year < tp.year)
-                  year += 100;
+            tp.year += (tp.year / 100) * 100;
+            if (tp.year < tp.year)
+                  tp.year += 100;
       }
 
       // private:
