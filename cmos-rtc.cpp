@@ -122,7 +122,7 @@ class CMOSRTC : public RTC
                   tp.seconds = (tp.seconds & 0x0F) + ((tp.seconds / 16) * 10);
                   tp.minutes = (tp.minutes & 0x0F) + ((tp.minutes / 16) * 10);
                   tp.hours = ((tp.hours & 0x0F) + (((tp.hours & 0x70) / 16) * 10)) | (tp.hours & 0x80);
-                  tp.days = (tp.days & 0x0F) + ((tp.days / 16) * 10);
+                  tp.day_of_month = (tp.day_of_month & 0x0F) + ((tp.day_of_month / 16) * 10);
                   tp.month = (tp.month & 0x0F) + ((tp.month / 16) * 10);
                   tp.year = (tp.year & 0x0F) + ((tp.year / 16) * 10);
             }
