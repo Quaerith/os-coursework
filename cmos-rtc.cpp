@@ -46,6 +46,18 @@ class CMOSRTC : public RTC
             return __inb(cmos_data);
       }
 
+      bool tp_eq(RTCTimePoint a, RTCTimePoint b) {
+		return (
+			(a.seconds == b.seconds) &&
+			(a.minutes == b.minutes) &&
+			(a.hours == b.hours) &&
+			(a.day_of_month == b.day_of_month) &&
+			(a.month == b.month) &&
+			(a.year == b.year) &&
+			true
+		);
+	}
+
       /**
 	 * Interrogates the RTC to read the current date & time.
 	 * @param tp Populates the tp structure with the current data & time, as
@@ -54,6 +66,8 @@ class CMOSRTC : public RTC
       void read_timepoint(RTCTimePoint &tp) override
       {
             // FILL IN THIS METHOD - WRITE HELPER METHODS IF NECESSARY
+            unsigned char registerB;
+
             UniqueIRQLock l;
 
             // Note: This uses the "read registers until you get the same values twice in a row" technique
