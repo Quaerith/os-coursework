@@ -46,17 +46,17 @@ class CMOSRTC : public RTC
             return __inb(cmos_data);
       }
 
-      bool tp_eq(RTCTimePoint a, RTCTimePoint b) {
-		return (
-			(a.seconds == b.seconds) &&
-			(a.minutes == b.minutes) &&
-			(a.hours == b.hours) &&
-			(a.day_of_month == b.day_of_month) &&
-			(a.month == b.month) &&
-			(a.year == b.year) &&
-			true
-		);
-	}
+      bool tp_eq(RTCTimePoint a, RTCTimePoint b)
+      {
+            return (
+                (a.seconds == b.seconds) &&
+                (a.minutes == b.minutes) &&
+                (a.hours == b.hours) &&
+                (a.day_of_month == b.day_of_month) &&
+                (a.month == b.month) &&
+                (a.year == b.year) &&
+                true);
+      }
 
       /**
 	 * Interrogates the RTC to read the current date & time.
@@ -67,14 +67,19 @@ class CMOSRTC : public RTC
       {
             // FILL IN THIS METHOD - WRITE HELPER METHODS IF NECESSARY
             unsigned char registerB;
+            unsigned char second;
+            unsigned char minute;
+            unsigned char hour;
+            unsigned char day;
+            unsigned char month;
+            unsigned int year;
 
             UniqueIRQLock l;
 
             // Note: This uses the "read registers until you get the same values twice in a row" technique
             //       to avoid getting dodgy/inconsistent values due to RTC updates
 
-            while (get_update_in_progress_flag())
-                  ; // Make sure an update isn't in progress
+            while (get_update_in_progress_flag()); // Make sure an update isn't in progress
             second = get_RTC_register(0x00);
             minute = get_RTC_register(0x02);
             hour = get_RTC_register(0x04);
@@ -90,19 +95,20 @@ class CMOSRTC : public RTC
                 .month = month,
                 .year = year};
 
-            RTCTimePoint previous = now;
+            RTCTimePoint previous = tp;
 
             do
             {
-                  previous = now;
+                  previous = tp;
 
-                  while (get_update_in_progress_flag()); // Make sure an update isn't in progress
-                        second = get_RTC_register(0x00);
-                        minute = get_RTC_register(0x02);
-                        hour = get_RTC_register(0x04);
-                        day = get_RTC_register(0x07);
-                        month = get_RTC_register(0x08);
-                        year = get_RTC_register(0x09);
+                  while (get_update_in_progress_flag())
+                        ; // Make sure an update isn't in progress
+                  second = get_RTC_register(0x00);
+                  minute = get_RTC_register(0x02);
+                  hour = get_RTC_register(0x04);
+                  day = get_RTC_register(0x07);
+                  month = get_RTC_register(0x08);
+                  year = get_RTC_register(0x09);
             } while (!tp_eq(now, previous));
 
             registerB = get_RTC_register(0xB);
@@ -128,8 +134,8 @@ class CMOSRTC : public RTC
 
             // Calculate the full (4-digit) year
 
-            year += (now->year / 100) * 100;
-            if (year < now->year)
+            year += (tp->year / 100) * 100;
+            if (year < tp->year)
                   year += 100;
       }
 
